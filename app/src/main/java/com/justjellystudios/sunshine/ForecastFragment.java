@@ -14,6 +14,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
+import com.justjellystudios.sunshine.cloud.WeatherDataParser;
+
+import org.json.JSONException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -89,8 +93,8 @@ public class ForecastFragment extends Fragment {
      * Background task responsible for network connection to openweathermap which
      * fetches weather data used to update the fragments listview.
      */
-    public class FetchWeatherTask extends AsyncTask<String , Void , String>{
-
+    public class FetchWeatherTask extends AsyncTask<String , Void , String[]>{
+        final int FORECAST_COUNT = 7;
         /**
          * Connects to openweather and fetches the forecast
          *
@@ -98,10 +102,10 @@ public class ForecastFragment extends Fragment {
          * Query parameters for weather data
          *
          * @return
-         * Returns the unparsed JSON string containing weather data
+         * Returns the array of strings containing weather data for each day.
          */
         @Override
-        protected String doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
             HttpURLConnection urlConnection = null;
             BufferedReader reader = null;
 
@@ -118,10 +122,11 @@ public class ForecastFragment extends Fragment {
                         .appendPath("data")
                         .appendPath("2.5")
                         .appendPath("forecast")
-                        .appendQueryParameter("daily" , params[0])
+                        .appendPath("daily")
+                        .appendQueryParameter("q" , params[0])
                         .appendQueryParameter("mode" , "json")
                         .appendQueryParameter("units" , "metric")
-                        .appendQueryParameter("cnt" , "7");
+                        .appendQueryParameter("cnt" , Integer.toString(FORECAST_COUNT));
 
                 Log.d(LOGTAG_FORECAST_FRAG , builder.build().toString());
                 URL url = new URL(builder.build().toString());
@@ -170,8 +175,19 @@ public class ForecastFragment extends Fragment {
                     }
                 }
             }
-            Log.d(ForecastFragment.LOGTAG_FORECAST_FRAG , forecastJsonStr);
-            return forecastJsonStr;
+
+            // Attempts to parse the weather data. Returns an array of strings on success.
+            String[] weatherData;
+            try {
+                weatherData = WeatherDataParser.getWeatherData(forecastJsonStr, FORECAST_COUNT);
+                return weatherData;
+            }
+            catch (JSONException ex){
+                ex.printStackTrace();
+            }
+
+
+            return null;
         }
     }
 }
