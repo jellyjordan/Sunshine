@@ -1,5 +1,6 @@
 package com.justjellystudios.sunshine;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -11,8 +12,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.justjellystudios.sunshine.cloud.WeatherDataParser;
 
@@ -31,6 +34,7 @@ import java.util.ArrayList;
  */
 public class ForecastFragment extends Fragment {
     private static final String LOGTAG_FORECAST_FRAG = "Sunshine Forecast";
+    private ArrayAdapter<String> forecastAdapter;
 
 
     /**
@@ -53,13 +57,25 @@ public class ForecastFragment extends Fragment {
         dummyForecast.add("Tomorrow - Rain 34/32");
         dummyForecast.add("Wednesday - Snow 24/12");
 
-        ArrayAdapter<String> forecastAdapter = new ArrayAdapter<String>(
+        forecastAdapter = new ArrayAdapter<String>(
                 getActivity() ,
                 R.layout.list_item_forecast ,
                 R.id.list_item_forecast_textview ,
                 dummyForecast);
 
         ListView forecastListView = (ListView) rootView.findViewById(R.id.listview_forecast);
+
+        // Starts a new activity which expands the weather details of the listview's child.
+        forecastListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView forecastTextView = (TextView) view.findViewById(R.id.list_item_forecast_textview);
+
+                Intent getDetailIntent = new Intent(getActivity() , DetailActivity.class);
+                getDetailIntent.putExtra(MainActivity.EXTRA_STRING, forecastTextView.getText());
+                startActivity(getDetailIntent);
+            }
+        });
         forecastListView.setAdapter(forecastAdapter);
         return rootView;
     }
@@ -90,10 +106,22 @@ public class ForecastFragment extends Fragment {
     }
 
     /**
+     * Updates the forecast ListView with weather data.
+     *
+     * @param weatherList
+     * The list of forecast data
+     */
+    public void updateWeather(String[] weatherList){
+        forecastAdapter.clear();
+        forecastAdapter.addAll(weatherList);
+    }
+
+    /**
      * Background task responsible for network connection to openweathermap which
      * fetches weather data used to update the fragments listview.
      */
     public class FetchWeatherTask extends AsyncTask<String , Void , String[]>{
+
         final int FORECAST_COUNT = 7;
         /**
          * Connects to openweather and fetches the forecast
@@ -188,6 +216,12 @@ public class ForecastFragment extends Fragment {
 
 
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(String[] strings) {
+            super.onPostExecute(strings);
+            updateWeather(strings);
         }
     }
 }

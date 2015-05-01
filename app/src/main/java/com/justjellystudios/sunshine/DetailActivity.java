@@ -7,20 +7,17 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 /**
- * Main entry activity for Sunshine app. UI is contained in the
- * ForecastFragment class and xml files.
+ * Activity for expanding weather details from the MainActivity
  */
-public class MainActivity extends ActionBarActivity {
-    public static final String EXTRA_STRING = "com.justjellystudios.sunshine";
-    private static final String LOGTAG_MAIN = "Sunshine MainActivity";
+public class DetailActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_detail);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.main_container, new ForecastFragment())
+                    .add(R.id.detail_container, new DetailFragment())
                     .commit();
         }
     }
@@ -29,7 +26,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu, menu);
+        getMenuInflater().inflate(R.menu.menu_detail, menu);
         return true;
     }
 
@@ -38,13 +35,15 @@ public class MainActivity extends ActionBarActivity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        switch(item.getItemId()){
-            case(R.id.action_settings):
+        int id = item.getItemId();
+
+        switch( item.getItemId()) {
+            case R.id.action_settings:
                 Intent settingsIntent = new Intent(this , SettingsActivity.class);
                 startActivity(settingsIntent);
                 return true;
         }
+
         return super.onOptionsItemSelected(item);
     }
-
 }
